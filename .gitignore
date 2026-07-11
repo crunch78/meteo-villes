@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Sorties générées (l'app est autonome, rien ne doit traîner à côté)
+output/
+meteo-data/
+
+# Données runtime (villes persistées dans AppData, pas dans le repo)
+villes.json
+
+# OS / éditeurs
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*~
+
+# Docs de travail (specs/plans Superpowers — internes)
+docs/superpowers/

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>☀️ Météo de mes villes</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="app">
+  <!-- Barre d'outils : ajout/suppression de villes -->
+  <header class="toolbar">
+    <div class="brand">
+      <span class="logo">🌤️</span>
+      <div class="brand-text">
+        <h1>Météo de mes villes</h1>
+        <p class="sub">Températures max/min · vent · pluie · humidité</p>
+      </div>
+    </div>
+    <div class="legend"><span>-10°</span><span class="bar"></span><span>+45°</span></div>
+    <div class="add-form">
+      <input id="city-url" type="text" placeholder="Coller un lien Météociel (ex: /previsions/10232/lanuejols.htm)"
+             autocomplete="off">
+      <button id="btn-add" class="btn-add" title="Ajouter cette ville">＋ Ajouter</button>
+    </div>
+    <button id="btn-refresh" class="btn-refresh" title="Re-télécharger toutes les prévisions">🔄 Actualiser</button>
+    <button id="btn-help" class="btn-help" title="Aide">❓</button>
+  </header>
+
+  <!-- Modale d'aide -->
+  <div class="help-overlay" id="help-overlay" hidden>
+    <div class="help-modal">
+      <div class="help-head">
+        <h2>📋 Aide — Météo de mes villes</h2>
+        <button class="help-close" id="help-close" title="Fermer (Échap)">✕</button>
+      </div>
+      <div class="help-body">
+        <h3>🌡️ La grille principale</h3>
+        <p>Chaque ligne = une ville, chaque colonne = un jour. Les cases affichent la température <strong>max</strong> (grand) et <strong>min</strong> (petit), avec un code couleur du bleu (froid) au rouge (chaud). En bas de chaque case : les rafales de vent 💨, la pluie cumulée 🌧 (si &gt; 0) et l'humidité minimale %.</p>
+
+        <h3>🔍 Prévisions heure par heure</h3>
+        <p>Pour chaque ville, trois petits boutons permettent d'ouvrir une vue détaillée heure par heure :</p>
+        <ul>
+          <li><strong>A</strong> = <strong>AROME</strong> (modèle français, ~2-3 jours, très précis)</li>
+          <li><strong>P</strong> = <strong>ARPEGE</strong> (modèle français global, ~3-4 jours)</li>
+          <li><strong>D</strong> = <strong>ICON-D2</strong> (modèle allemand, ~2-3 jours, haute résolution)</li>
+        </ul>
+        <p>Si un bouton est grisé, le modèle n'a pas de donnée pour cette ville.</p>
+
+        <h3>➕ Ajouter une ville</h3>
+        <p>Dans la barre du haut, colle un lien Météociel (n'importe quelle page de la ville) puis clique sur <strong>＋ Ajouter</strong>. Exemples valides :</p>
+        <ul>
+          <li><code>https://www.meteociel.fr/previsions/10232/lanuejols.htm</code></li>
+          <li><code>https://www.meteociel.fr/previsions-arome-1h/28366/rouen.htm</code></li>
+        </ul>
+        <p>L'app extrait automatiquement l'identifiant et le nom de la ville. La ville est sauvegardée et reviendra à chaque lancement.</p>
+
+        <h3>🗑️ Supprimer une ville</h3>
+        <p>Clique sur le bouton rouge <strong>×</strong> à côté du nom d'une ville. Une confirmation te sera demandée.</p>
+
+        <h3>🔄 Actualiser</h3>
+        <p>Le bouton <strong>Actualiser</strong> re-télécharge toutes les prévisions. À noter : à chaque lancement de l'app, tout est automatiquement re-téléchargé (zéro cache).</p>
+
+        <h3>📊 Les modèles météo</h3>
+        <p>L'app combine plusieurs sources de Météociel pour maximiser la couverture :</p>
+        <ul>
+          <li><strong>GFS</strong> (prévisions + tendances) : ~11 jours, global — alimente la grille principale</li>
+          <li><strong>AROME</strong> : modèle régional français, haute résolution, idéal pour le court terme</li>
+          <li><strong>ARPEGE</strong> : modèle global français, bonne couverture moyenne</li>
+          <li><strong>ICON-D2</strong> : modèle régional allemand, bon complément</li>
+        </ul>
+        <p>Comparer ces modèles te donne une idée de l'incertitude : s'ils sont d'accord, la prévision est fiable ; s'ils divergent, prudence.</p>
+
+        <h3>💾 Où sont mes données ?</h3>
+        <p>Ta liste de villes est sauvegardée dans <code>%APPDATA%\MeteoVilles\villes.json</code>. Tu peux l'éditer manuellement si besoin. Aucune autre donnée n'est stockée.</p>
+
+        <h3>⚖️ Source des données</h3>
+        <p>Toutes les prévisions proviennent de <a href="https://www.meteociel.fr" target="_blank" rel="noopener">Météociel.fr</a>. Cette application n'est pas affiliée à Météociel et respecte leurs conditions d'utilisation (usage perso, non-commercial).</p>
+
+        <h3>⌨️ Raccourcis</h3>
+        <ul>
+          <li><strong>Échap</strong> : fermer une modale (aide ou prévisions horaires)</li>
+          <li><strong>Entrée</strong> dans le champ URL : ajouter la ville</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zone message (erreur ajout, etc.) -->
+  <div id="msg" class="msg" hidden></div>
+
+  <!-- Zone grille : remplie dynamiquement par app.js via /api/refresh -->
+  <main id="grid-host" class="grid-host">
+    <div class="loading">
+      <span class="spinner"></span>
+      <p>Téléchargement des prévisions…</p>
+      <p class="hint">Récupération des données Météociel (5 modèles × vos villes)</p>
+    </div>
+  </main>
+
+  <!-- Mention source obligatoire (CGU Météociel) -->
+  <footer class="source-note">
+    Données : <a href="https://www.meteociel.fr" target="_blank" rel="noopener">Météociel.fr</a>
+    · Météo-France / ECMWF / DWD · Usage perso non-commercial
+  </footer>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>
