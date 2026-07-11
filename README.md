@@ -100,7 +100,7 @@ Les prévisions proviennent de [Météociel.fr](https://www.meteociel.fr), qui a
 
 ## 📄 Licence
 
-Ce projet est sous licence **MIT** ([LICENSE](LICENSE)) — © 2026 Chris.
+Ce projet est sous licence **MIT** ([LICENSE](LICENSE)) — © 2026 Christophe Martinez.
 
 Le **code source** est libre d'utilisation, modification et redistribution selon les termes de la licence MIT.
 
