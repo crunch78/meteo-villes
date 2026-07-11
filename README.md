@@ -1,6 +1,6 @@
 # ☀️ Météo de mes villes
 
-Application desktop autonome (Windows) qui affiche les prévisions météo de vos villes favorites dans une fenêtre native plein écran. Les données proviennent de [Météociel](https://www.meteociel.fr) et incluent les modèles **AROME**, **ARPEGE** et **ICON-D2** en prévisions heure par heure.
+Application desktop autonome (Windows) qui affiche les prévisions météo de vos villes favorites dans une fenêtre native plein écran. Les données proviennent de [Météociel](https://www.meteociel.fr) et incluent les modèles **GFS** (grille principale ~11 jours) ainsi que les prévisions heure par heure **AROME**, **ARPEGE** et **ICON-D2**.
 
 ![Python](https://img.shields.io/badge/Python-3.13+-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
@@ -10,7 +10,7 @@ Application desktop autonome (Windows) qui affiche les prévisions météo de vo
 
 ## ✨ Fonctionnalités
 
-- **Grille comparative** : toutes vos villes côte à côte, 11 jours de prévisions (températures max/min, vent, pluie, humidité).
+- **Grille comparative** : toutes vos villes côte à côte, ~11 jours de prévisions issues du modèle **GFS** (températures max/min, vent, pluie, humidité).
 - **Prévisions horaires** : boutons **A** (AROME), **P** (ARPEGE) et **D** (ICON-D2) par ville → modale plein écran avec les prévisions heure par heure.
 - **Gestion des villes** : ajoutez une ville en collant un lien Météociel, supprimez-la d'un clic.
 - **Zéro cache** : à chaque lancement, l'app re-télécharge toutes les données (toujours à jour).
