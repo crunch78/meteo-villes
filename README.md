@@ -1,6 +1,8 @@
 # ☀️ Météo de mes villes
 
-Application desktop autonome (Windows) qui affiche les prévisions météo de vos villes favorites dans une fenêtre native plein écran. Les données proviennent de [Météociel](https://www.meteociel.fr) et incluent les modèles **GFS** (grille principale ~11 jours) ainsi que les prévisions heure par heure **AROME**, **ARPEGE** et **ICON-D2**.
+**Comparez la météo de plusieurs villes en un coup d'œil et accédez immédiatement aux meilleurs modèles de prévision** (GFS, AROME, ARPEGE, ICON-D2). Application desktop autonome (Windows) qui affiche vos villes favorites côte à côte dans une fenêtre native plein écran.
+
+Les données proviennent de [Météociel](https://www.meteociel.fr).
 
 ![Python](https://img.shields.io/badge/Python-3.13+-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
@@ -10,8 +12,8 @@ Application desktop autonome (Windows) qui affiche les prévisions météo de vo
 
 ## ✨ Fonctionnalités
 
-- **Grille comparative** : toutes vos villes côte à côte, ~11 jours de prévisions issues du modèle **GFS** (températures max/min, vent, pluie, humidité).
-- **Prévisions horaires** : boutons **A** (AROME), **P** (ARPEGE) et **D** (ICON-D2) par ville → modale plein écran avec les prévisions heure par heure.
+- **Comparateur de villes** : toutes vos villes côte à côte en un coup d'œil, ~11 jours de prévisions issues du modèle **GFS** (températures max/min, vent, pluie, humidité).
+- **Accès immédiat aux meilleurs modèles** : boutons **A** (AROME), **P** (ARPEGE) et **D** (ICON-D2) par ville → modale plein écran avec les prévisions heure par heure. Comparez les modèles pour estimer la fiabilité d'une prévision : s'ils convergent, la tendance est fiable.
 - **Gestion des villes** : ajoutez une ville en collant un lien Météociel, supprimez-la d'un clic.
 - **Zéro cache** : à chaque lancement, l'app re-télécharge toutes les données (toujours à jour).
 - **100% autonome** : un seul fichier `.exe`, rien d'autre à installer. Les villes sont sauvegardées dans `%APPDATA%\MeteoVilles\`.

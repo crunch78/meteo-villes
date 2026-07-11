@@ -31,6 +31,12 @@ python -m PyInstaller --noconfirm --onefile --windowed --name MeteoVilles \
   re-téléchargé depuis Météociel à chaque lancement).
 - Les villes sont persistées dans `%APPDATA%\MeteoVilles\villes.json`.
 
+## Villes par défaut
+
+Au 1er lancement, l'app propose les 6 plus grandes villes françaises :
+Paris, Marseille, Lyon, Toulouse, Nice, Nantes. Vous pouvez ensuite ajouter
+ou supprimer des villes via l'interface.
+
 ## Lancer en source (sans compiler)
 
 ```bash
