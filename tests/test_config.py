@@ -14,7 +14,7 @@ import config
 
 @pytest.fixture(autouse=True)
 def _temp_appdata(tmp_path, monkeypatch):
-    """Isole les tests du vrai AppData de Chris."""
+    """Isole les tests du vrai AppData de Christophe."""
     tmp_data = tmp_path / "MeteoVilles"
     monkeypatch.setattr(config, "DATA_DIR", tmp_data)
     monkeypatch.setattr(config, "CITIES_FILE", tmp_data / "villes.json")
