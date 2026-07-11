@@ -6,6 +6,8 @@ Application desktop autonome (Windows) qui affiche les prévisions météo de vo
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey)
 
+![Aperçu de l'application](docs/screenshot.png)
+
 ## ✨ Fonctionnalités
 
 - **Grille comparative** : toutes vos villes côte à côte, 11 jours de prévisions (températures max/min, vent, pluie, humidité).
