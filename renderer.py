@@ -1,6 +1,8 @@
+import base64
 import html
 import json
 import re
+from pathlib import Path
 
 # temps_label Météociel -> emoji.
 _EMOJI_RULES = [
@@ -20,6 +22,51 @@ _EMOJI_RULES = [
     ("soleil", "☀️"),
 ]
 _FALLBACK = "🌡️"
+
+# --- Images de fond par temps (8 catégories regroupées) ---------------------
+# Mapping temps_label Météociel -> clé d'image. L'image s'affiche en bandeau
+# (~45% haut) dans la case, fondue vers la couleur thermique en dessous.
+# Ordre important : les orages/grêle sont testés avant pluie/neige car un
+# "averse de grêle" contient à la fois "averse" et "grêle".
+_WEATHER_BG_RULES = [
+    ("grele",      ["grêle", "grele", "verglas"]),
+    ("orage",      ["orage"]),
+    ("neige",      ["neige", "granule"]),
+    ("pluie",      ["averse", "pluie"]),
+    ("brouillard", ["brouillard", "brume"]),
+    # ensoleille AVANT couvert : "peu nuageux" contient "nuageux" et doit
+    # matcher ensoleille, pas couvert.
+    ("ensoleille", ["ciel clair", "peu nuageux", "dégagé", "soleil"]),
+    ("couvert",    ["couvert", "nuageux"]),
+    ("mitige",     ["mitigé", "mitige", "voilé", "voile"]),
+]
+
+
+def _weather_bg_key(label: str) -> str:
+    """Retourne la clé d'image de fond pour un temps_label, ou '' si aucun."""
+    low = (label or "").lower()
+    for key, words in _WEATHER_BG_RULES:
+        if any(w in low for w in words):
+            return key
+    return ""
+
+
+def _load_weather_imgs() -> dict:
+    """Précharge les 8 images en data URI base64 au démarrage du module.
+    Retourne {clé: 'data:image/jpeg;base64,...'}."""
+    img_dir = Path(__file__).resolve().parent / "web" / "img" / "weather"
+    out = {}
+    for key in ("ensoleille", "mitige", "couvert", "brouillard",
+                "pluie", "neige", "orage", "grele"):
+        p = img_dir / f"{key}.jpg"
+        if p.exists():
+            b64 = base64.b64encode(p.read_bytes()).decode("ascii")
+            out[key] = f"data:image/jpeg;base64,{b64}"
+    return out
+
+
+_WEATHER_BG_IMGS = _load_weather_imgs()
+
 
 # Échelle continue de température -> teinte (hue HSL).
 _T_LO, _T_HI = -10, 45          # plage perceptuelle
@@ -47,8 +94,8 @@ def temp_color(temp) -> str:
     x = max(0.0, min(1.0, (temp - _T_LO) / (_T_HI - _T_LO)))
     hue = (1 - x) * 240            # 240 (bleu) -> 0 (rouge)
     intensity = abs(temp - _T_NEUTRAL) / 30.0
-    sat = round(42 + max(0.0, min(1.0, intensity)) * 50, 1)   # 42 .. 92
-    light = 38
+    sat = round(min(100, 60 + max(0.0, min(1.0, intensity)) * 40), 1)  # 60 .. 100
+    light = 32
     return f"hsl({hue:.0f},{sat}%,{light}%)"
 
 
@@ -59,9 +106,19 @@ def temp_bg(temp) -> str:
     x = max(0.0, min(1.0, (temp - _T_LO) / (_T_HI - _T_LO)))
     hue = (1 - x) * 240
     intensity = abs(temp - _T_NEUTRAL) / 30.0
-    sat = round(70 + max(0.0, min(1.0, intensity)) * 25, 1)
-    light = 82 - max(0.0, min(1.0, intensity)) * 10
-    return f"hsla({hue:.0f},{sat}%,{light}%,0.55)"
+    sat = round(min(100, 80 + max(0.0, min(1.0, intensity)) * 20), 1)
+    light = round(78 - max(0.0, min(1.0, intensity)) * 12, 1)
+    return f"hsla({hue:.0f},{sat}%,{light}%,0.6)"
+
+
+def temp_border(temp) -> str:
+    """Couleur de bordure opaque dérivée de la température (hue thermique).
+    Plus saturée et profonde que le fond, pour un contour visible."""
+    if temp is None:
+        return "hsl(210,20%,60%)"
+    x = max(0.0, min(1.0, (temp - _T_LO) / (_T_HI - _T_LO)))
+    hue = (1 - x) * 240
+    return f"hsl({hue:.0f},75%,50%)"
 
 
 def day_summary(slots: list) -> dict:
@@ -178,6 +235,7 @@ def _grid_cell(summary, col: int = 0) -> str:
     tmax, tmin = summary["tmax"], summary["tmin"]
     bg = temp_bg(tmax)
     fg = temp_color(tmax)
+    border = temp_border(tmax)
     delay = round(col * 0.035, 3)  # cascade d'apparition gauche -> droite
 
     meta = []
@@ -189,8 +247,23 @@ def _grid_cell(summary, col: int = 0) -> str:
         meta.append(f"<span title='Humidité min (%)'>{_esc(summary['humid'])}%</span>")
     meta_html = f"<div class='meta'>{''.join(meta)}</div>" if meta else ""
 
+    # Bandeau image de temps (~45% haut) si une image correspond au temps.
+    bg_key = _weather_bg_key(summary.get("label", ""))
+    img_uri = _WEATHER_BG_IMGS.get(bg_key, "")
+    # Hue thermique pour le fondu bas de l'image (cohérence avec la case).
+    m = re.search(r"hsla\((\d+),", bg)
+    hue = m.group(1) if m else "210"
+    img_band = ""
+    if img_uri:
+        img_band = (
+            f"<div class='wband' style='background-image:url(\"{img_uri}\")'>"
+            f"<div class='wfade' style='background:linear-gradient(180deg,"
+            f"transparent 55%,hsla({hue},80%,77%,0.95) 100%)'></div></div>"
+        )
+
     return (
-        f"<div class='cell' style='background:{bg};animation-delay:{delay}s' title='{_esc(summary['label'])}'>"
+        f"<div class='cell' style='background:{bg};border-color:{border};animation-delay:{delay}s' title='{_esc(summary['label'])}'>"
+        f"{img_band}"
         f"<span class='sheen'></span>"
         f"<span class='emoji'>{summary['emoji']}</span>"
         f"<span class='tmax' style='color:{fg}'>{_esc(tmax)}°</span>"
@@ -289,11 +362,14 @@ header.hero .sub{margin:4px 0 0;font-size:.8rem;opacity:.9;font-weight:500;color
 .grid .dhead .dnum{font-size:1.1rem;font-weight:800;line-height:1.1}
 .grid .dhead .dname{font-size:.64rem;opacity:.82;text-transform:uppercase;letter-spacing:.7px;margin-top:1px}
 .grid .name{background:var(--namebg);backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);color:#fff;text-align:left;padding:0 16px;
+  -webkit-backdrop-filter:blur(10px);color:#fff;text-align:center;padding:0 16px;
   font-size:clamp(.9rem,1.4vw,1.12rem);font-weight:800;letter-spacing:-.01em;
   position:sticky;left:0;z-index:3;white-space:nowrap;border-radius:var(--radius);
   border:1px solid #ffffff30;box-shadow:4px 0 16px #0003;
-  display:flex;align-items:center;min-height:0;flex-wrap:wrap;gap:4px}
+  display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;gap:6px}
+/* Override : la case ville ne suit PAS le layout 45-55 des cases température.
+   Contenu centré verticalement, pas poussé vers le bas. */
+.grid .cell.name{justify-content:center !important}
 .grid .name .errmsg{display:block;flex:1 1 100%;font-size:.68rem;font-weight:500;color:#ffcccc;margin-top:2px}
 
 /* Cartes en verre dépoli */
@@ -302,7 +378,7 @@ header.hero .sub{margin:4px 0 0;font-size:.8rem;opacity:.9;font-weight:500;color
   backdrop-filter:blur(8px) saturate(1.15);-webkit-backdrop-filter:blur(8px) saturate(1.15);
   box-shadow:inset 0 1px 0 #ffffffcc, inset 0 -8px 16px #ffffff22, 0 6px 14px #0002;
   animation:cellIn .55s both;overflow:hidden;transition:transform .16s ease-out, box-shadow .16s ease-out, filter .16s ease-out;
-  display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:0;min-height:0}
+  display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0;min-height:0}
 @keyframes cellIn{from{opacity:0;transform:translateY(14px) scale(.92)}
   to{opacity:1;transform:none}}
 .grid .cell .sheen{position:absolute;inset:0;border-radius:var(--radius);pointer-events:none;
@@ -312,15 +388,19 @@ header.hero .sub{margin:4px 0 0;font-size:.8rem;opacity:.9;font-weight:500;color
 .grid .cell .tmax{display:block;font-size:clamp(1.2rem,2.6vw,2.4rem);font-weight:900;
   line-height:1;letter-spacing:-.03em;text-shadow:0 1px 0 #fff9;position:relative}
 .grid .cell .tmin{display:block;font-size:clamp(.64rem,1vw,.82rem);opacity:.62;font-weight:700;margin-top:2px;position:relative}
-.grid .cell .emoji{position:absolute;top:4px;right:5px;font-size:.88rem;opacity:.95;z-index:1}
+.grid .cell .emoji{display:none}  /* masqué : remplacé par l'image de fond */
 .grid .cell .meta{display:flex;gap:7px;justify-content:center;margin-top:4px;
   font-size:clamp(.52rem,.8vw,.66rem);font-weight:700;opacity:.78;position:relative}
+/* Bandeau image de temps (~45% haut) + fondu vertical vers la couleur thermique */
+.grid .cell .wband{position:absolute;top:0;left:0;right:0;height:45%;
+  background-size:cover;background-position:center;z-index:0}
+.grid .cell .wfade{position:absolute;inset:0}
 .grid .cell .meta .r{color:#0d4a6b;opacity:1}
 .grid .cell.empty{opacity:.28}
 .grid .cell.errored,.grid .name.errored{color:#ffcccc}
 
 /* Boutons AROME/ARPEGE/ICON-D2/Supprimer dans la cellule de nom */
-.mdl-btns{margin-left:auto;display:inline-flex;gap:5px;flex:0 0 auto}
+.mdl-btns{display:inline-flex;gap:5px;flex:0 0 auto}
 .mdl-btn{width:28px;height:28px;border-radius:8px;border:1px solid #ffffff55;
   background:rgba(255,255,255,.2);color:#fff;font-size:.72rem;font-weight:800;
   cursor:pointer;line-height:1;padding:0;display:inline-flex;align-items:center;

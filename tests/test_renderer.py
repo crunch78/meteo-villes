@@ -1,5 +1,6 @@
 from renderer import (render_index, weather_emoji, day_summary, temp_color,
-                      _city_days, _all_day_labels, gfs_run_label)
+                      _city_days, _all_day_labels, gfs_run_label,
+                      _weather_bg_key, temp_border)
 import re
 
 SAMPLE_PREV = {
@@ -199,3 +200,74 @@ def test_gfs_run_label_empty_when_no_data():
     assert gfs_run_label([]) == ""
     assert gfs_run_label([{"name": "X", "slug": "x",
                            "previsions": None, "tendances": None}]) == ""
+
+
+# --- Mapping temps -> image de fond ----------------------------------------
+def test_weather_bg_key_ensoleille():
+    assert _weather_bg_key("Ciel clair") == "ensoleille"
+    assert _weather_bg_key("Peu nuageux") == "ensoleille"
+
+
+def test_weather_bg_key_mitige():
+    assert _weather_bg_key("Mitigé") == "mitige"
+    assert _weather_bg_key("Voilé") == "mitige"
+
+
+def test_weather_bg_key_couvert():
+    assert _weather_bg_key("Couvert") == "couvert"
+    assert _weather_bg_key("Nuageux") == "couvert"
+
+
+def test_weather_bg_key_brouillard():
+    assert _weather_bg_key("Brouillard") == "brouillard"
+    assert _weather_bg_key("Brume") == "brouillard"
+
+
+def test_weather_bg_key_pluie():
+    assert _weather_bg_key("Pluie") == "pluie"
+    assert _weather_bg_key("Averses de pluie") == "pluie"
+
+
+def test_weather_bg_key_neige():
+    assert _weather_bg_key("Neige") == "neige"
+    assert _weather_bg_key("Averse de neige") == "neige"
+
+
+def test_weather_bg_key_orage():
+    assert _weather_bg_key("Orage") == "orage"
+    assert _weather_bg_key("Averse orageuse") == "orage"
+
+
+def test_weather_bg_key_grele():
+    """La grêle doit être détectée avant la pluie (ordre du mapping)."""
+    assert _weather_bg_key("Averse de grêle") == "grele"
+    assert _weather_bg_key("Verglas") == "grele"
+
+
+def test_weather_bg_key_unknown_label():
+    """Un temps non reconnu retourne une chaîne vide (pas de bandeau image)."""
+    assert _weather_bg_key("Inconnu") == ""
+    assert _weather_bg_key("") == ""
+    assert _weather_bg_key(None) == ""
+
+
+def test_weather_bg_key_case_insensitive():
+    """Le matching est insensible à la casse."""
+    assert _weather_bg_key("CIEL CLAIR") == "ensoleille"
+    assert _weather_bg_key("PLUIE") == "pluie"
+
+
+# --- Bordure thermique ------------------------------------------------------
+def test_temp_border_is_hsl_string():
+    assert temp_border(20).startswith("hsl")
+
+
+def test_temp_border_colder_than_warmer():
+    """Bordure froide plus bleue (hue haute) que chaude (hue basse)."""
+    def _hue(s):
+        return float(s[s.index("(") + 1:s.index(",")])
+    assert _hue(temp_border(2)) > _hue(temp_border(35))
+
+
+def test_temp_border_none():
+    assert temp_border(None).startswith("hsl")
