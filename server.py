@@ -129,7 +129,8 @@ def make_handler():
             if url.path == "/api/refresh":
                 cities = scrape_all()
                 self._json(200, {"ok": True, "full": render_full_page(cities),
-                                 "n": len(cities)})
+                                 "n": len(cities),
+                                 "gfs_run": renderer.gfs_run_label(cities)})
                 return
             if url.path == "/api/cities/add":
                 res = config.add_city(body.get("url", ""))

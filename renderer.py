@@ -121,6 +121,19 @@ def _has_model_data(city: dict, model: str) -> bool:
     return bool(data and data.get("days"))
 
 
+def gfs_run_label(cities: list) -> str:
+    """Renvoie l'info de run GFS (ex. « 17:59 (run GFS de 12Z) ») extraite en
+    scrapant les pages previsions/tendances. La grille principale est alimentée
+    par GFS mais n'a pas de modale — on remonte donc le champ updated_at jusqu'au
+    header pour indiquer la fraîcheur des données. Vide si indisponible."""
+    for c in cities:
+        for section in ("previsions", "tendances"):
+            data = c.get(section)
+            if data and data.get("updated_at"):
+                return data["updated_at"]
+    return ""
+
+
 def _city_modal_btns(city: dict) -> str:
     """Petits boutons A (AROME) / P (ARPEGE) / D (ICON-D2) pour ouvrir la
     modale horaire, + ❌ supprimer la ville. Désactivés (disabled, grisés) si

@@ -6,6 +6,17 @@
 
 var host = document.getElementById('grid-host');
 var msgEl = document.getElementById('msg');
+var gfsRunEl = document.getElementById('gfs-run');
+
+function setGfsRun(label) {
+  if (!gfsRunEl) return;
+  if (label) {
+    gfsRunEl.textContent = '🛰️ ' + label;
+    gfsRunEl.hidden = false;
+  } else {
+    gfsRunEl.hidden = true;
+  }
+}
 
 function showMsg(text, kind) {
   if (!text) { msgEl.hidden = true; return; }
@@ -35,12 +46,15 @@ async function refresh() {
     var d = await r.json();
     if (d.ok && d.full) {
       injectGrid(d.full);
+      setGfsRun(d.gfs_run);
     } else {
       showMsg(d.error || 'Erreur lors du téléchargement.', 'error');
       host.innerHTML = '';
+      setGfsRun('');
     }
   } catch (e) {
     showMsg('Erreur réseau : ' + e, 'error');
+    setGfsRun('');
   }
 }
 

@@ -1,5 +1,5 @@
 from renderer import (render_index, weather_emoji, day_summary, temp_color,
-                      _city_days, _all_day_labels)
+                      _city_days, _all_day_labels, gfs_run_label)
 import re
 
 SAMPLE_PREV = {
@@ -179,3 +179,23 @@ def test_render_handles_error_city():
 def test_weather_emoji_mapping():
     assert weather_emoji("Ciel clair") != weather_emoji("Pluie")
     assert weather_emoji("inconnu")
+
+
+def test_gfs_run_label_from_previsions():
+    """L'info de run GFS vient en priorité des prévisions."""
+    assert gfs_run_label(cities_sample()) == "17:59 (run GFS de 12Z)"
+
+
+def test_gfs_run_label_fallback_tendances():
+    """Si previsions n'a pas d'updated_at, on retombe sur tendances."""
+    cities = [{"name": "X", "slug": "x",
+               "previsions": {"days": [], "updated_at": ""},
+               "tendances": {"days": [], "updated_at": "18:39 (run GFS de 12Z)"}}]
+    assert gfs_run_label(cities) == "18:39 (run GFS de 12Z)"
+
+
+def test_gfs_run_label_empty_when_no_data():
+    """Aucune donnée -> chaîne vide (badge masqué côté UI)."""
+    assert gfs_run_label([]) == ""
+    assert gfs_run_label([{"name": "X", "slug": "x",
+                           "previsions": None, "tendances": None}]) == ""
