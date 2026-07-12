@@ -21,7 +21,7 @@ import urllib.request
 
 from server import start_server
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 
 def _parse_args(argv: list[str]) -> argparse.Namespace:
