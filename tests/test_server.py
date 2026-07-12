@@ -59,15 +59,15 @@ def test_api_cities(base):
     assert status == 200
     data = json.loads(body)
     slugs = [c["slug"] for c in data["cities"]]
-    assert "le_vigan" in slugs
+    assert "paris" in slugs
 
 
 def test_api_cities_add_then_present(base):
     _post(base, "/api/cities/add",
-          {"url": "https://www.meteociel.fr/previsions/25370/paris.htm"})
+          {"url": "https://www.meteociel.fr/previsions/28366/rouen.htm"})
     _, body = _get(base, "/api/cities")
     slugs = [c["slug"] for c in json.loads(body)["cities"]]
-    assert "paris" in slugs
+    assert "rouen" in slugs
 
 
 def test_api_cities_add_invalid_url(base):
@@ -77,12 +77,12 @@ def test_api_cities_add_invalid_url(base):
 
 def test_api_cities_remove(base):
     _post(base, "/api/cities/add",
-          {"url": "https://www.meteociel.fr/previsions/25370/paris.htm"})
-    _, payload = _post(base, "/api/cities/remove", {"slug": "paris"})
+          {"url": "https://www.meteociel.fr/previsions/28366/rouen.htm"})
+    _, payload = _post(base, "/api/cities/remove", {"slug": "rouen"})
     assert payload["ok"] is True
     _, body = _get(base, "/api/cities")
     slugs = [c["slug"] for c in json.loads(body)["cities"]]
-    assert "paris" not in slugs
+    assert "rouen" not in slugs
 
 
 def test_404_unknown_endpoint(base):

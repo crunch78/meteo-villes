@@ -30,8 +30,8 @@ def test_load_cities_creates_file_on_first_run():
 def test_load_cities_returns_defaults_on_first_run():
     cities = config.load_cities()
     slugs = [c["slug"] for c in cities]
-    assert "rouen" in slugs
-    assert "lanuejols" in slugs
+    assert "paris" in slugs
+    assert "marseille" in slugs
 
 
 def test_each_city_has_required_fields():
@@ -42,11 +42,11 @@ def test_each_city_has_required_fields():
 
 # --- Parsing URL Météociel --------------------------------------------------
 @pytest.mark.parametrize("url,expected_slug,expected_id", [
-    ("https://www.meteociel.fr/previsions/10232/lanuejols.htm", "lanuejols", 10232),
-    ("https://www.meteociel.fr/previsions-arome-1h/28366/rouen.htm", "rouen", 28366),
-    ("https://www.meteociel.fr/tendances/10439/le_vigan.htm", "le_vigan", 10439),
-    ("https://www.meteociel.fr/previsions-arpege-1h/10281/nimes.htm", "nimes", 10281),
-    ("https://www.meteociel.fr/previsions-icond2/10232/lanuejols.htm", "lanuejols", 10232),
+    ("https://www.meteociel.fr/previsions/27817/paris.htm", "paris", 27817),
+    ("https://www.meteociel.fr/previsions-arome-1h/3520/marseille.htm", "marseille", 3520),
+    ("https://www.meteociel.fr/tendances/25627/lyon.htm", "lyon", 25627),
+    ("https://www.meteociel.fr/previsions-arpege-1h/10979/toulouse.htm", "toulouse", 10979),
+    ("https://www.meteociel.fr/previsions-icond2/2005/nice.htm", "nice", 2005),
 ])
 def test_parse_meteociel_url(url, expected_slug, expected_id):
     result = config.parse_meteociel_url(url)
@@ -63,24 +63,24 @@ def test_parse_meteociel_url_invalid():
 
 def test_slug_to_name():
     assert config._slug_to_name("le_vigan") == "Le Vigan"
-    assert config._slug_to_name("rouen") == "Rouen"
+    assert config._slug_to_name("paris") == "Paris"
 
 
 # --- Ajout / suppression ----------------------------------------------------
 def test_add_city_success():
     config.load_cities()  # init
-    res = config.add_city("https://www.meteociel.fr/previsions/25370/paris.htm")
+    res = config.add_city("https://www.meteociel.fr/previsions/28366/rouen.htm")
     assert res["ok"] is True
-    assert res["city"]["slug"] == "paris"
-    assert res["city"]["id"] == 25370
+    assert res["city"]["slug"] == "rouen"
+    assert res["city"]["id"] == 28366
     slugs = [c["slug"] for c in config.load_cities()]
-    assert "paris" in slugs
+    assert "rouen" in slugs
 
 
 def test_add_city_duplicate_rejected():
     config.load_cities()
-    # rouen est dans les defaults
-    res = config.add_city("https://www.meteociel.fr/previsions/28366/rouen.htm")
+    # paris est dans les defaults
+    res = config.add_city("https://www.meteociel.fr/previsions/27817/paris.htm")
     assert res["ok"] is False
     assert "déjà" in res["error"]
 
@@ -93,10 +93,10 @@ def test_add_city_invalid_url():
 
 def test_remove_city_success():
     config.load_cities()
-    res = config.remove_city("rouen")
+    res = config.remove_city("paris")
     assert res["ok"] is True
     slugs = [c["slug"] for c in config.load_cities()]
-    assert "rouen" not in slugs
+    assert "paris" not in slugs
 
 
 def test_remove_city_not_found():
@@ -107,8 +107,8 @@ def test_remove_city_not_found():
 
 # --- URLs -------------------------------------------------------------------
 def test_city_urls_has_all_models():
-    urls = config.city_urls(10232, "lanuejols")
+    urls = config.city_urls(27817, "paris")
     for model in ("previsions", "tendances", "arome", "arpege", "icond2"):
         assert model in urls
-        assert "10232" in urls[model]
-        assert "lanuejols" in urls[model]
+        assert "27817" in urls[model]
+        assert "paris" in urls[model]

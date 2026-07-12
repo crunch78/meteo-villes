@@ -34,11 +34,12 @@ CITIES_FILE = DATA_DIR / "villes.json"
 
 # --- Villes par défaut (1er lancement, AppData vide) ------------------------
 DEFAULT_CITIES = [
-    {"slug": "rouen", "name": "Rouen", "id": 28366},
-    {"slug": "lanuejols", "name": "Lanuejols", "id": 10232},
-    {"slug": "le_vigan", "name": "Le Vigan", "id": 10439},
-    {"slug": "bordeaux", "name": "Bordeaux", "id": 11537},
-    {"slug": "nimes", "name": "Nimes", "id": 10281},
+    {"slug": "paris", "name": "Paris", "id": 27817},
+    {"slug": "marseille", "name": "Marseille", "id": 3520},
+    {"slug": "lyon", "name": "Lyon", "id": 25627},
+    {"slug": "toulouse", "name": "Toulouse", "id": 10979},
+    {"slug": "nice", "name": "Nice", "id": 2005},
+    {"slug": "nantes", "name": "Nantes", "id": 15569},
 ]
 
 
